@@ -1,6 +1,6 @@
 import sys
 import os
-from settings import tikv_ip, tikv_port, tikv_pd_ip, ycsb_port, ansibledir, deploydir
+from settings import tikv_ip, tikv_port, tikv_pd_ip, ycsb_port, ansibledir, deploydir, ycsb_path, ycsb_workload_path,ycsb_rocksdb_prop_dir
 import psutil
 import time
 import numpy as np
@@ -202,7 +202,7 @@ metric_set=\
 
 def run_workload(wl_type):
     #./go-ycsb run tikv -P ./workloads/smallpntlookup -p tikv.pd=192.168.1.130:2379
-    cmd="./go-ycsb run tikv -P ./workloads/"+wl_type+" -p tikv.pd="+tikv_pd_ip+':'+ycsb_port+" --threads=512"
+    cmd = ycsb_path + " run rocksdb -P " + ycsb_workload_path + wl_type + " --threads=8"
     print(cmd)
     res=os.popen(cmd).read()
     return(res)
@@ -211,9 +211,10 @@ def load_workload(wl_type):
     #./go-ycsb load tikv -P ./workloads/smallpntlookup -p tikv.pd=192.168.1.130:2379
     # cmd="./tikv-ctl --host "+tikv_ip+":"+tikv_port+" modify-tikv-config -m kvdb -n default.disable_auto_compactions -v 1"
     # tmp=os.popen(cmd).read()                        # will return "success"
-    cmd="./go-ycsb load tikv -P ./workloads/"+wl_type+" -p tikv.pd="+tikv_pd_ip+':'+ycsb_port+" --threads=512"
+    # cmd = ycsb_path + " load rocksdb -P " + ycsb_rocksdb_prop_dir + " " + ycsb_workload_path + wl_type + " -p dropdata=true --threads=8"
+    cmd = ycsb_path + " load rocksdb -P " + ycsb_workload_path + wl_type + " -p dropdata=true --threads=8"
     print(cmd)
-    res=os.popen(cmd).read()
+    res = os.popen(cmd).read()
     # cmd="./tikv-ctl --host "+tikv_ip+":"+tikv_port+" compact -d kv --threads=512"
     # tmp=os.popen(cmd).read()                        # will return "success"
     return(res)
@@ -240,14 +241,16 @@ def set_tikvyml(knob_sessname, knob_val):
         knob_val=str(knob_val)+"KB"
     if(knob_name=='write-buffer-size' or knob_name=='max-bytes-for-level-base' or knob_name=='target-file-size-base'):
         knob_val=str(knob_val)+"MB"
-    if(knob_name in tmpcontent[knob_sess[0]][knob_sess[1]]):        # TODO: only support 2 level of knob_sess currently
-        tmpcontent[knob_sess[0]][knob_sess[1]][knob_name]=knob_val
-    else:
-        return('failed')
+    # if(knob_name in tmpcontent[knob_sess[0]][knob_sess[1]]):        # TODO: only support 2 level of knob_sess currently
+    #     tmpcontent[knob_sess[0]][knob_sess[1]][knob_name]=knob_val
+    # else:
+    #     return('failed')
     print("set_tikvyml:: ",knob_sessname, knob_sess, knob_name, knob_val)
-    ymlf=open(ymldir, 'w')
-    yaml.dump(tmpcontent, ymlf, Dumper=yaml.RoundTripDumper)
-    os.popen("rm "+tmpdir+" && "+"mv "+ymldir+" "+tmpdir)
+    # ymlf=open(ymldir, 'w')
+    ymlf=open(ymldir, 'a+')
+    # yaml.dump(tmpcontent, ymlf, Dumper=yaml.RoundTripDumper)
+    ymlf.write(f"set_tikvyml:: {knob_sessname} {knob_sess} {knob_name} {knob_val}")
+    os.popen("rm "+tmpdir+" && "+"cp "+ymldir+" "+tmpdir)
     time.sleep(0.5)
     return('success')
 
@@ -330,44 +333,43 @@ def calc_metric(metric_after, metric_before, metric_list):
 
 def restart_db():
     #cmd="cd /home/tidb/tidb-ansible/ && ansible-playbook unsafe_cleanup_data.yml"
-    dircmd="cd "+ ansibledir + " && "
-    clrcmd="ansible-playbook unsafe_cleanup_data.yml"
-    depcmd="ansible-playbook deploy.yml"
-    runcmd="ansible-playbook start.yml"
-    ntpcmd="ansible-playbook -i hosts.ini deploy_ntp.yml -u tidb -b"   #need sleep 10s after ntpcmd
-    print("-------------------------------------------------------")
-    clrres = os.popen(dircmd+clrcmd).read()
-    if("Congrats! All goes well" in clrres):
-        print("unsafe_cleanup_data finished, res == "+clrres.split('\n')[-2])
-    else:
-        print(clrres)
-        print("unsafe_cleanup_data failed")
-        exit()
-    print("-------------------------------------------------------")
-    ntpres = os.popen(dircmd + ntpcmd).read()
-    time.sleep(10)
-    if ("Congrats! All goes well" in ntpres):
-        print("set ntp finished, res == " + ntpres.split('\n')[-2])
-    else:
-        print(ntpres)
-        print("set ntp failed")
-        exit()
-    print("-------------------------------------------------------")
-    depres = os.popen(dircmd + depcmd).read()
-    if ("Congrats! All goes well" in depres):
-        print("deploy finished, res == "+depres.split('\n')[-2])
-    else:
-        print(depres)
-        print("deploy failed")
-        exit()
-    print("-------------------------------------------------------")
-    runres = os.popen(dircmd + runcmd).read()
-    if ("Congrats! All goes well" in runres):
-        print("start finished, res == "+runres.split('\n')[-2])
-    else:
-        print(runres)
-        print("start failed")
-        exit()
-    print("-------------------------------------------------------")
-
-
+    # dircmd="cd "+ ansibledir + " && "
+    # clrcmd="ansible-playbook unsafe_cleanup_data.yml"
+    # depcmd="ansible-playbook deploy.yml"
+    # runcmd="ansible-playbook start.yml"
+    # ntpcmd="ansible-playbook -i hosts.ini deploy_ntp.yml -u tidb -b"   #need sleep 10s after ntpcmd
+    # print("-------------------------------------------------------")
+    # clrres = os.popen(dircmd+clrcmd).read()
+    # if("Congrats! All goes well" in clrres):
+    #     print("unsafe_cleanup_data finished, res == "+clrres.split('\n')[-2])
+    # else:
+    #     print(clrres)
+    #     print("unsafe_cleanup_data failed")
+    #     exit()
+    # print("-------------------------------------------------------")
+    # ntpres = os.popen(dircmd + ntpcmd).read()
+    # time.sleep(10)
+    # if ("Congrats! All goes well" in ntpres):
+    #     print("set ntp finished, res == " + ntpres.split('\n')[-2])
+    # else:
+    #     print(ntpres)
+    #     print("set ntp failed")
+    #     exit()
+    # print("-------------------------------------------------------")
+    # depres = os.popen(dircmd + depcmd).read()
+    # if ("Congrats! All goes well" in depres):
+    #     print("deploy finished, res == "+depres.split('\n')[-2])
+    # else:
+    #     print(depres)
+    #     print("deploy failed")
+    #     exit()
+    # print("-------------------------------------------------------")
+    # runres = os.popen(dircmd + runcmd).read()
+    # if ("Congrats! All goes well" in runres):
+    #     print("start finished, res == "+runres.split('\n')[-2])
+    # else:
+    #     print(runres)
+    #     print("start failed")
+    #     exit()
+    # print("-------------------------------------------------------")
+    pass

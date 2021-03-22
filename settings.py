@@ -3,6 +3,9 @@ tikv_ip="192.168.1.104"
 tikv_port="20160"
 tikv_pd_ip="192.168.1.104"
 ycsb_port="2379"
+ycsb_path="/home/yiqin0411/workspace/go-ycsb/bin/go-ycsb"
+ycsb_workload_path="./workloads/"
+ycsb_rocksdb_prop_dir="/home/yiqin0411/workspace/test-rocksdb-data/go-ycsb/property/rocksdb"
 
 # workloads and their related performance metrics
 wl_metrics={
@@ -29,5 +32,5 @@ target_knob_set=['rocksdb.writecf.bloom-filter-bits-per-key',
                  'rocksdb.defaultcf.disable-auto-compactions']
 #target_knob_set=['disable-auto-compactions', 'optimize-filters-for-hits', 'write-buffer-size', 'block-size', 'max-bytes-for-level-base']
 
-ansibledir="/home/tidb/tidb-ansible/"
-deploydir="/home/tidb/deploy/"
+ansibledir="/home/yiqin0411/workspace/test-Auto-tikv/ansibledir/"
+deploydir="/home/yiqin0411/workspace/test-Auto-tikv/deploydir/"

@@ -19,6 +19,7 @@ if __name__ == '__main__':
     while(Round>0):
         print("################## start a new Round ##################")
         rec = configuration_recommendation(ds)
+        print(f"rec={rec}")
         knob_cache = {}
         for x in rec.keys():
             set_knob(x, rec[x])
