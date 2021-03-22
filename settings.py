@@ -1,20 +1,20 @@
-#info about tikv
-tikv_ip="192.168.1.104"
-tikv_port="20160"
-tikv_pd_ip="192.168.1.104"
-ycsb_port="2379"
-ycsb_path="/home/yiqin0411/workspace/go-ycsb/bin/go-ycsb"
-ycsb_workload_path="./workloads/"
-ycsb_rocksdb_prop_dir="/home/yiqin0411/workspace/test-rocksdb-data/go-ycsb/property/rocksdb"
+# info about tikv
+tikv_ip = "192.168.1.104"
+tikv_port = "20160"
+tikv_pd_ip = "192.168.1.104"
+ycsb_port = "2379"
+ycsb_path = "/home/yiqin0411/workspace/go-ycsb/bin/go-ycsb"
+ycsb_workload_path = "./workloads/"
+ycsb_rocksdb_prop_dir = "/home/yiqin0411/workspace/test-rocksdb-data/go-ycsb/property/rocksdb"
 
 # workloads and their related performance metrics
-wl_metrics={
-    "writeheavy":["write_throughput","write_latency","store_size","compaction_cpu"],        #UPDATE
-    "pntlookup40": ["get_throughput","get_latency","store_size","compaction_cpu"],          #READ
-    "pntlookup80": ["get_throughput","get_latency","store_size","compaction_cpu"],          #READ
-    "longscan":  ["scan_throughput","scan_latency","store_size","compaction_cpu"],          #SCAN
-    "shortscan": ["scan_throughput","scan_latency","store_size","compaction_cpu"],          #SCAN
-    "smallpntlookup": ["get_throughput","get_latency","store_size","compaction_cpu"],       #READ
+wl_metrics = {
+    "writeheavy": ["write_throughput", "write_latency", "store_size", "compaction_cpu"],  # UPDATE
+    "pntlookup40": ["get_throughput", "get_latency", "store_size", "compaction_cpu"],  # READ
+    "pntlookup80": ["get_throughput", "get_latency", "store_size", "compaction_cpu"],  # READ
+    "longscan": ["scan_throughput", "scan_latency", "store_size", "compaction_cpu"],  # SCAN
+    "shortscan": ["scan_throughput", "scan_latency", "store_size", "compaction_cpu"],  # SCAN
+    "smallpntlookup": ["get_throughput", "get_latency", "store_size", "compaction_cpu"],  # READ
 }
 # workload to be load
 loadtype = "shortscan"
@@ -22,15 +22,15 @@ loadtype = "shortscan"
 wltype = "shortscan"
 
 # only 1 target metric to be optimized
-target_metric_name="scan_latency"
+target_metric_name = "scan_latency"
 
 # several knobs to be tuned
-target_knob_set=['rocksdb.writecf.bloom-filter-bits-per-key',
-                 'rocksdb.defaultcf.bloom-filter-bits-per-key',
-                 'rocksdb.writecf.optimize-filters-for-hits',
-                 'rocksdb.defaultcf.block-size',
-                 'rocksdb.defaultcf.disable-auto-compactions']
-#target_knob_set=['disable-auto-compactions', 'optimize-filters-for-hits', 'write-buffer-size', 'block-size', 'max-bytes-for-level-base']
+target_knob_set = ['rocksdb.writecf.bloom-filter-bits-per-key',
+                   'rocksdb.defaultcf.bloom-filter-bits-per-key',
+                   'rocksdb.writecf.optimize-filters-for-hits',
+                   'rocksdb.defaultcf.block-size',
+                   'rocksdb.defaultcf.disable-auto-compactions']
+# target_knob_set=['disable-auto-compactions', 'optimize-filters-for-hits', 'write-buffer-size', 'block-size', 'max-bytes-for-level-base']
 
-ansibledir="/home/yiqin0411/workspace/test-Auto-tikv/ansibledir/"
-deploydir="/home/yiqin0411/workspace/test-Auto-tikv/deploydir/"
+ansibledir = "/home/yiqin0411/workspace/test-Auto-tikv/ansibledir/"
+deploydir = "/home/yiqin0411/workspace/test-Auto-tikv/deploydir/"
