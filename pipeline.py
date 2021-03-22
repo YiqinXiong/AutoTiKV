@@ -16,7 +16,7 @@ if __name__ == '__main__':
     num_metrics = len(metric_list)
 
     KEY = str(time.time())
-    while (Round > 0):
+    while Round > 0:
         print("################## start a new Round ##################")
         rec = configuration_recommendation(ds)
         print(f"rec={rec}")
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         restart_db()
         lres = load_workload(loadtype)
         print(lres)
-        if ("_ERROR" in lres):
+        if "_ERROR" in lres:
             print("load workload error")
             exit()
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         rres = run_workload(wltype)
         print(rres)
-        if ("_ERROR" in rres):
+        if "_ERROR" in rres:
             print("run workload error")
             exit()
 

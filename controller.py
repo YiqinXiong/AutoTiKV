@@ -17,7 +17,7 @@ def set_disable_auto_compactions(ip, port, val):
     cmd = "./tikv-ctl --host " + ip + ":" + port + " modify-tikv-config -m kvdb -n default.disable_auto_compactions -v " + str(
         val)
     res = os.popen(cmd).read()  # will return "success"
-    return (res)
+    return res
 
 
 knob_set = \
@@ -143,10 +143,10 @@ def read_store_size(ip, port):
     reslist = res.split("\n")
     ans0 = 0
     for rl in reslist:
-        if ('tikv_engine_size_bytes{db="kv",type="default"}' in rl):
+        if 'tikv_engine_size_bytes{db="kv",type="default"}' in rl:
             ans0 = int(rl.split(' ')[1])
             break
-    return (ans0)
+    return ans0
 
 
 def read_compaction_cpu(ip, port):
@@ -156,10 +156,10 @@ def read_compaction_cpu(ip, port):
     ans = 0
     ans1 = 0
     for rl in reslist:
-        if ('tikv_thread_cpu_seconds_total{name="rocksdb:low' in rl):
+        if 'tikv_thread_cpu_seconds_total{name="rocksdb:low' in rl:
             ans1 = float(rl.split(' ')[1])
             ans += ans1
-    return (ans)
+    return ans
 
 
 metric_set = \
@@ -221,7 +221,7 @@ def run_workload(wl_type):
     cmd = ycsb_path + " run rocksdb -P " + ycsb_workload_path + wl_type + " --threads=8"
     print(cmd)
     res = os.popen(cmd).read()
-    return (res)
+    return res
 
 
 def load_workload(wl_type):
@@ -234,7 +234,7 @@ def load_workload(wl_type):
     res = os.popen(cmd).read()
     # cmd="./tikv-ctl --host "+tikv_ip+":"+tikv_port+" compact -d kv --threads=512"
     # tmp=os.popen(cmd).read()                        # will return "success"
-    return (res)
+    return res
 
 
 # ------------------common functions------------------
@@ -246,19 +246,19 @@ def set_tikvyml(knob_sessname, knob_val):
     tmpdir = os.path.join(ansibledir, "conf", "tikv.yml")
     tmpf = open(tmpdir)
     tmpcontent = yaml.load(tmpf, Loader=yaml.RoundTripLoader)
-    if (knob_set[knob_sessname]['type'] == 'enum'):
+    if knob_set[knob_sessname]['type'] == 'enum':
         idx = knob_val
         knob_val = knob_set[knob_sessname]['enumval'][idx]
-    if (knob_set[knob_sessname]['type'] == 'bool'):
-        if (knob_val == 0):
+    if knob_set[knob_sessname]['type'] == 'bool':
+        if knob_val == 0:
             knob_val = False
         else:
             knob_val = True
-    if (knob_name == 'block-size'):
+    if knob_name == 'block-size':
         knob_val = str(knob_val) + "KB"
-    if (knob_name == 'write-buffer-size'
-            or knob_name == 'max-bytes-for-level-base'
-            or knob_name == 'target-file-size-base'):
+    if knob_name == 'write-buffer-size' \
+            or knob_name == 'max-bytes-for-level-base' \
+            or knob_name == 'target-file-size-base':
         knob_val = str(knob_val) + "MB"
     # if(knob_name in tmpcontent[knob_sess[0]][knob_sess[1]]):        # TODO: only support 2 level of knob_sess currently
     #     tmpcontent[knob_sess[0]][knob_sess[1]][knob_name]=knob_val
@@ -271,12 +271,12 @@ def set_tikvyml(knob_sessname, knob_val):
     ymlf.write(f"set_tikvyml:: {knob_sessname} {knob_sess} {knob_name} {knob_val}")
     os.popen("rm " + tmpdir + " && " + "cp " + ymldir + " " + tmpdir)
     time.sleep(0.5)
-    return ('success')
+    return 'success'
 
 
 def set_knob(knob_name, knob_val):
     changebyyml = knob_set[knob_name]["changebyyml"]
-    if (changebyyml):
+    if changebyyml:
         res = set_tikvyml(knob_name, knob_val)
     else:
         func = knob_set[knob_name]["set_func"]
@@ -290,51 +290,51 @@ def read_knob(knob_name, knob_cache):
 
 
 def read_metric(metric_name, rres=None):
-    if (rres != None):
+    if rres is not None:
         rl = rres.split('\n')
         rl.reverse()
-        if (metric_name == "write_latency"):
+        if metric_name == "write_latency":
             i = 0
-            while ((not rl[i].startswith('UPDATE ')) and (not rl[i].startswith('INSERT '))):
+            while (not rl[i].startswith('UPDATE ')) and (not rl[i].startswith('INSERT ')):
                 i += 1
             dat = rl[i][rl[i].find("Avg(us):") + 9:].split(",")[0]
             dat = int(dat)
             return (dat)
-        elif (metric_name == "get_latency"):
+        elif metric_name == "get_latency":
             i = 0
-            while (not rl[i].startswith('READ ')):
+            while not rl[i].startswith('READ '):
+                i += 1
+            dat = rl[i][rl[i].find("Avg(us):") + 9:].split(",")[0]
+            dat = int(dat)
+            return dat
+        elif metric_name == "scan_latency":
+            i = 0
+            while not rl[i].startswith('SCAN '):
                 i += 1
             dat = rl[i][rl[i].find("Avg(us):") + 9:].split(",")[0]
             dat = int(dat)
             return (dat)
-        elif (metric_name == "scan_latency"):
+        elif metric_name == "write_throughput":
             i = 0
-            while (not rl[i].startswith('SCAN ')):
-                i += 1
-            dat = rl[i][rl[i].find("Avg(us):") + 9:].split(",")[0]
-            dat = int(dat)
-            return (dat)
-        elif (metric_name == "write_throughput"):
-            i = 0
-            while ((not rl[i].startswith('UPDATE ')) and (not rl[i].startswith('INSERT '))):
+            while (not rl[i].startswith('UPDATE ')) and (not rl[i].startswith('INSERT ')):
                 i += 1
             dat = rl[i][rl[i].find("OPS:") + 5:].split(",")[0]
             dat = float(dat)
             return (dat)
-        elif (metric_name == "get_throughput"):
+        elif metric_name == "get_throughput":
             i = 0
-            while (not rl[i].startswith('READ ')):
+            while not rl[i].startswith('READ '):
                 i += 1
             dat = rl[i][rl[i].find("OPS:") + 5:].split(",")[0]
             dat = float(dat)
-            return (dat)
-        elif (metric_name == "scan_throughput"):
+            return dat
+        elif metric_name == "scan_throughput":
             i = 0
-            while (not rl[i].startswith('SCAN ')):
+            while not rl[i].startswith('SCAN '):
                 i += 1
             dat = rl[i][rl[i].find("OPS:") + 5:].split(",")[0]
             dat = float(dat)
-            return (dat)
+            return dat
     func = metric_set[metric_name]["read_func"]
     res = func(tikv_ip, tikv_port)
     return res
@@ -349,11 +349,11 @@ def calc_metric(metric_after, metric_before, metric_list):
     num_metrics = len(metric_list)
     new_metric = np.zeros([1, num_metrics])
     for i, x in enumerate(metric_list):
-        if (metric_set[x]["calc"] == "inc"):
+        if metric_set[x]["calc"] == "inc":
             new_metric[0][i] = metric_after[0][i] - metric_before[0][i]
-        elif (metric_set[x]["calc"] == "ins"):
+        elif metric_set[x]["calc"] == "ins":
             new_metric[0][i] = metric_after[0][i]
-    return (new_metric)
+    return new_metric
 
 
 def restart_db():
